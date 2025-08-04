@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  id               Int        @id @default(autoincrement())
+  images           String 
+  roomName         String
+  is_active_status Boolean    @default(true)
+  floor            String
+  type_room        String
+  description      String
+  is_active_booked Boolean    @default(false)
+  bookings         Booking[]
+  favorites        Favorite[]
+}
+
+model Booking {
+  id                  Int       @id @default(autoincrement())
+  customerId          Int
+  roomId              Int
+  roomName            String
+  mettingDate         String
+  mettingTime         String
+  startTime           String
+  endTime             String
+  equipments          Equipment
+  status_booking_done Boolean   @default(false)
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  room     Room     @relation(fields: [roomId], references: [id])
+}
+
+enum Equipment {
+  TV
+  Microphone
+  Board
+  Plasma_Display
+  Wifi
+  Capacity_15
+}
+
+model Favorite {
+  id         Int @id @default(autoincrement())
+  roomId     Int
+  customerId Int
+
+  room     Room     @relation(fields: [roomId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+}
+
+model Profile {
+  id       Int       @id @default(autoincrement())
+  Name     String
+  gmail    String
+  gender   Gender
+  phone    String
+  country  String
+  customeId Customer? @relation("CustomerProfile")
+}
+
+model Customer {
+  id        Int     @id @default(autoincrement())
+  profileId Int     @unique
+  contact   String  
+  password  String
+  google    String?
+  facebook  String?
+
+  profile   Profile    @relation("CustomerProfile", fields: [profileId], references: [id])
+  bookings  Booking[]
+  favorites Favorite[]
+}
+
+enum Gender {
+  male
+  feMale
+  other
+}

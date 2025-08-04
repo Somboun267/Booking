@@ -1,0 +1,89 @@
+const prisma = require('../config/prisma')
+const bcrypt = require('bcrypt')
+
+exports.register = async(req,res) =>{
+    try{
+        const { contact,password,Name, gmail,gender,phone ,country} = req.body
+
+        if(!Name || !gmail || !gender || !phone || !country ||!contact ||!password){
+             return res.status(400).json({message:"Please enter complete information"})
+        }   
+
+        // check contact
+        const CheckContact = await prisma.Customer.findFirst({
+            where:{
+                contact
+            }
+        })  
+        if(CheckContact){
+            return res.status(400).json({message:"User Already Exits"})
+        }
+        
+        // hashpassword
+        const hashpassword = await bcrypt.hash(password,10)
+        
+const checkGmail = await prisma.profile.findFirst({
+    where: { gmail }
+  })
+  if (checkGmail) {
+    return res.status(400).json({ message: "Gmail already exists" })
+  }
+  
+        //Create profile
+        const profile = await prisma.profile.create({
+            data:{
+                Name:Name,
+                gmail:gmail,
+                gender:gender,
+                phone:phone,
+                country:country
+            }
+        })  
+
+
+        // create Customer pouk kup profileId
+        const customer = await prisma.Customer.create({
+            data:{
+                contact,
+                password:hashpassword,
+                profileId:profile.id
+            }
+        })
+// update profile
+        await prisma.profile.update({
+            where: { id: profile.id },
+            data: {
+              customeId: { connect: { id: customer.id } }
+            }
+          })
+          
+          res.status(201).json({
+            message: "Register success",
+            customer: {
+              id: customer.id,
+              contact: customer.contact,
+              profile: {
+                Name: profile.Name,
+                gmail: profile.gmail,
+                gender: profile.gender,
+                phone: profile.phone,
+                country: profile.country,
+              }
+            }
+          })
+    } catch(err){
+        console.log(err)
+        res.status(500).json({message:"Server Register Error"})
+    }
+}
+
+
+exports.login = async(req,res) =>{
+    try{
+       
+        res.send("hello login controller")
+    } catch(err){
+        console.log(err)
+        res.status(500).json({message:"Server Login Error"})
+    }
+}
