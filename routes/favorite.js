@@ -3,7 +3,7 @@ const express =  require('express')
 const router = express.Router()
 const{CreateFavorite,listFavorite,UpdateFavorite,remove} = require('../controllers/FavoriteController')
 
-
+const {ProtectRoutes} = require('../middleware/protectRoutes')
 
 /**
  * @swagger
@@ -22,7 +22,7 @@ const{CreateFavorite,listFavorite,UpdateFavorite,remove} = require('../controlle
  *       200:
  *         description: List of favorites
  */
-router.get('/favorites',listFavorite)
+router.get('/favorites',ProtectRoutes,listFavorite)
 
 /**
  * @swagger
@@ -45,7 +45,7 @@ router.get('/favorites',listFavorite)
  *       200:
  *         description: Favorite created
  */
-router.post('/favorite',CreateFavorite)
+router.post('/favorite',ProtectRoutes,CreateFavorite)
 
 /**
  * @swagger
@@ -74,7 +74,7 @@ router.post('/favorite',CreateFavorite)
  *       200:
  *         description: Favorite updated
  */
-router.put('/favorite/:id',UpdateFavorite)
+router.put('/favorite/:id',ProtectRoutes,UpdateFavorite)
 
 /**
  * @swagger

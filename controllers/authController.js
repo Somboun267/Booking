@@ -2,86 +2,91 @@ const prisma = require('../config/prisma')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
+
 exports.register = async (req, res) => {
     try {
-        const { contact, password, Name, gmail, gender, phone, country } = req.body
-
-        if (!Name || !gmail || !gender || !phone || !country || !contact || !password) {
-            return res.status(400).json({ message: "Please enter complete information" })
+      const { contact, password, Name, gmail, gender, phone, country } = req.body;
+  
+      if (!Name || !gmail || !gender || !phone || !country || !contact || !password) {
+        return res.status(400).json({ message: "Please enter complete information" });
+      }
+  
+      // Check  contact 
+      const CheckContact = await prisma.customer.findUnique({ where: { contact } });
+      if (CheckContact) {
+        return res.status(400).json({ message: "User Already Exists" });
+      }
+  
+      // Hash password
+      const hashpassword = await bcrypt.hash(password, 10);
+  
+      // Check if gmail exists
+      const checkGmail = await prisma.profile.findFirst({ where: { gmail } });
+      if (checkGmail) {
+        return res.status(400).json({ message: "Gmail already exists" });
+      }
+  
+      // Prepare profile image data (if any)
+      const imageName = req.file ? req.file.filename : null;
+      const url = req.file ? `${req.protocol}://${req.get('host')}/Profileimages/${req.file.filename}` : null;
+  
+      // Create profile with image info
+      const profile = await prisma.profile.create({
+        data: {
+          Name,
+          gmail,
+          gender,
+          phone,
+          country,
+          imagename: imageName,
+          url: url,
         }
-
-        // check contact
-        const CheckContact = await prisma.Customer.findFirst({
-            where: {
-                contact
-            }
-        })
-        if (CheckContact) {
-            return res.status(400).json({ message: "User Already Exits" })
+      });
+  
+      // Create customer linked to profile
+      const customer = await prisma.customer.create({
+        data: {
+          contact,
+          password: hashpassword,
+          profileId: profile.id
         }
-
-        // hashpassword
-        const hashpassword = await bcrypt.hash(password, 10)
-
-        const checkGmail = await prisma.profile.findFirst({
-            where: { gmail }
-        })
-        if (checkGmail) {
-            return res.status(400).json({ message: "Gmail already exists" })
+      });
+  
+      // Update profile with customerId relation
+      await prisma.profile.update({
+        where: { id: profile.id },
+        data: {
+          customeId: { connect: { id: customer.id } }
         }
-
-        //Create profile
-        const profile = await prisma.profile.create({
-            data: {
-                Name: Name,
-                gmail: gmail,
-                gender: gender,
-                phone: phone,
-                country: country
-            }
-        })
-
-
-        // create Customer pouk kup profileId
-        const customer = await prisma.Customer.create({
-            data: {
-                contact,
-                password: hashpassword,
-                profileId: profile.id
-            }
-        })
-        // update profile
-        await prisma.profile.update({
-            where: { id: profile.id },
-            data: {
-                customeId: { connect: { id: customer.id } }
-            }
-        })
-
-        res.status(201).json({
-            message: "Register success",
-            customer: {
-                id: customer.id,
-                contact: customer.contact,
-                profile: {
-                    Name: profile.Name,
-                    gmail: profile.gmail,
-                    gender: profile.gender,
-                    phone: profile.phone,
-                    country: profile.country,
-                }
-            }
-        })
+      });
+  
+      res.status(201).json({
+        message: "Register success",
+        customer: {
+          id: customer.id,
+          contact: customer.contact,
+          profile: {
+            Name: profile.Name,
+            gmail: profile.gmail,
+            gender: profile.gender,
+            phone: profile.phone,
+            country: profile.country,
+            imagename: profile.imagename,
+            url: profile.url,
+          }
+        }
+      });
+  
     } catch (err) {
-        console.log(err)
-        res.status(500).json({ message: "Server Register Error" })
+      console.error(err);
+      res.status(500).json({ message: "Server Register Error" });
     }
-}
-
+  };
+  
 
 exports.login = async (req, res) => {
     try {
-        const { contact, password } = req.body
+        const { contact,gmail, password } = req.body
 
         if (!contact) {
             return res.status(400).json({ message: "invalid contact" })
@@ -93,7 +98,10 @@ exports.login = async (req, res) => {
         //check contact nai database
         const checkContact = await prisma.customer.findFirst({
             where: {
-                contact
+                OR: [
+                    { contact: contact },
+                    { profile: { gmail: gmail } }
+                ]
             }, include: {
                 profile: true
             }
@@ -122,16 +130,19 @@ const payload = {
   };
   
   // ✅ Create token
-  const token = jwt.sign(payload, "Kaka", { expiresIn: "1d" });
-  
+  const AccessToken = jwt.sign(payload, process.env.ACCESS_TOKEN, { expiresIn: "5m" });
 
+  //   Create refresh token
+  const RefreshToken = jwt.sign({id:checkContact.profile.id},process.env.REFERSH_TOKEN, { expiresIn: "7d" });
 
-
+  // send response
   res.status(200).json({
     message: "Login success",
-    profile: payload.profile,
-    token: token
+   
+    token: AccessToken,
+    refersh: RefreshToken,
   });
+
 
     } catch (err) {
         console.log(err)

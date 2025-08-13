@@ -1,42 +1,64 @@
 const prisma = require("../config/prisma");
 
-
+const fs = require('fs');
+const path = require('path');
 
 exports.createRoom = async (req, res) => {
     try {
-        const { images, roomName, floor, type_room, description, is_active_status } = req.body;
-
-        if(!roomName || roomName.trim() ==="" ||
-        !floor || floor ==="" ||
-        !type_room || type_room.trim() === "" ||
-        !description || description.trim() === "" ||
-        is_active_status === undefined || is_active_status === null
-    ){
-           return res.status(400).json({message:"Please enter complete information"})
+      const { roomName, floor, type_room, description, is_active_status } = req.body;
+  
+      const newRoom = await prisma.room.create({
+        data: {
+          roomName,
+          floor: floor.toString(),
+          type_room,
+          description,
+          is_active_status: is_active_status === 'true' || is_active_status === true,
         }
-
-
-        const newRoom = await prisma.room.create({
-            data: {
-                images,
-                roomName,
-                floor,
-                type_room,
-                description,
-                is_active_status,
-            }
+      });
+  
+      if (req.files && req.files.length > 0) {
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+  
+        const imagesData = req.files.map(file => ({
+          imageName: file.filename,   // 
+          url: `${baseUrl}/images/${file.filename}`,
+          roomId: newRoom.id,
+        }));
+  
+        await prisma.image.createMany({
+          data: imagesData,
         });
-        res.status(200).json({ message: "Created Success", newRoom });
+      }
+  
+      const roomWithImages = await prisma.room.findUnique({
+        where: { id: newRoom.id },
+        include: { images: true },
+      });
+  
+      res.status(200).json({ message: "Created Success", room: roomWithImages });
+  
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "Internal error" });
+      console.error(err);
+      res.status(500).json({ message: "Internal error" });
     }
-};
+  };
+  
 
 exports.list = async(req,res)=>{
     try{
 
-        const room = await prisma.room.findMany()
+        const room = await prisma.room.findMany({
+            include: {
+                images: {
+                    select:{
+                        id: true,
+                        imageName: true,
+                        url: true
+                    }
+                } 
+            }
+        })
         
         res.status(200).send(room)
 
@@ -47,29 +69,64 @@ exports.list = async(req,res)=>{
 }
 
 
+
+
 exports.UpdateRoom = async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { images, roomName, floor, type_room, description, is_active_status } = req.body;
-  
-      const updated = await prisma.room.update({
-        where: { id },
-        data: {
-          images,
-          roomName,
-          floor,
-          type_room,
-          description,
-          is_active_status,
+  try {
+    const roomId = parseInt(req.params.id);
+    const { roomName, floor, type_room, description, is_active_status } = req.body;
+
+    // อัปเดตข้อมูล room
+    const updated = await prisma.room.update({
+      where: { id: roomId },
+      data: {
+        roomName,
+        floor,
+        type_room,
+        description,
+        is_active_status: is_active_status === 'true' || is_active_status === true,
+      },
+    });
+
+    // ดึงรูปเก่าทั้งหมด
+    const oldImages = await prisma.image.findMany({ where: { roomId } });
+
+    // ลบไฟล์เก่าในโฟลเดอร์และลบข้อมูลใน DB
+    if (oldImages.length > 0) {
+      oldImages.forEach(image => {
+        const imagePath = path.join(__dirname, '..', 'images', image.imageName); 
+        if (fs.existsSync(imagePath)) {
+          fs.unlinkSync(imagePath);
         }
       });
-  
-      res.status(200).json({ message: "Updated Success", updated });
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: "Internal error" });
+      await prisma.image.deleteMany({ where: { roomId } });
     }
-  };
+
+    // ถ้ามีไฟล์ใหม่อัปโหลด ให้บันทึกลง DB
+    if (req.files && req.files.length > 0) {
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+      const newImagesData = req.files.map(file => ({
+        imageName: file.filename,
+        url: `${baseUrl}/images/${file.filename}`,
+        roomId: roomId,
+      }));
+
+      await prisma.image.createMany({ data: newImagesData });
+    }
+
+    // ดึงข้อมูลห้องที่อัปเดตพร้อมไฟล์
+    const updatedRoom = await prisma.room.findUnique({
+      where: { id: roomId },
+      include: { images: true },
+    });
+
+    res.status(200).json({ message: "Updated Success", room: updatedRoom });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal error" });
+  }
+};
 
 
   exports.remove = async(req,res)=>{

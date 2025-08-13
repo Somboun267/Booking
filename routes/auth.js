@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const {register,login} = require('../controllers/authController')
+const { uploadProfile } = require('../uploads/UploadImagesProfile');
  
 
 /**
@@ -46,7 +47,7 @@ const {register,login} = require('../controllers/authController')
  *       500:
  *         description: Server error
  */
-router.post('/register',register)
+router.post('/register',uploadProfile,register)
 
 
 /**
@@ -56,7 +57,7 @@ router.post('/register',register)
  *     summary: Login with contact and password
  *     tags: [Auth]
  *     requestBody:
- *       required: true
+ *       required: trues
  *       content:
  *         application/json:
  *           schema:
@@ -94,6 +95,7 @@ router.post('/register',register)
  *         description: Server error
  */
 router.post('/login',login)
+
 
 
 

@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const bodyparser = require('body-parser')
+const path = require('path')
 
 // import routes
 const auth = require('./routes/auth')
@@ -14,7 +15,10 @@ const swagger = require('./swagger');
 
 // 
 app.use(bodyparser.json())
-
+// images Room
+app.use('/images', express.static(path.join(__dirname, 'images')))
+// Images Profile
+app.use('/Profileimages', express.static(path.join(__dirname, 'Profileimages')));
 // ern sai routes
 app.use('/api',auth)
 app.use('/api',customer)

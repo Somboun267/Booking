@@ -3,6 +3,7 @@ const express = require('express')
 const router = express.Router()
 
 const {list,createRoom,UpdateRoom,remove} = require('../controllers/roomController')
+const {upload} = require('../uploads/upload')
 
 
 /**
@@ -53,7 +54,7 @@ router.get("/rooms",list)
  *       200:
  *         description: Room created
  */
-router.post("/room",createRoom)
+router.post("/room",upload,createRoom)
 
 /**
  * @swagger
@@ -90,7 +91,7 @@ router.post("/room",createRoom)
  *       200:
  *         description: Room updated
  */
-router.put("/room/:id",UpdateRoom)
+router.put("/room/:id",upload,UpdateRoom)
 
 
 /**

@@ -10,7 +10,18 @@ exports.list = async (req,res) =>{
                 contact:true
             }
            },  // 
-           room: true
+           room: {
+            include:{
+                images: {
+                    select: {
+                        id: true,
+                        imageName: true,
+                        url: true
+                    }
+                }
+            }
+           }
+    
          }
        });
        res.json(bookings);
@@ -24,6 +35,7 @@ exports.list = async (req,res) =>{
 exports.createBook = async (req,res)=>{
     try{
         const { customerId, roomId,roomName, mettingDate, mettingTime,startTime,endTime,equipments, } = req.body;
+        
         const newBook = await prisma.booking.create({
             data:{
                 customerId,

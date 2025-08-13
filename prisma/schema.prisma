@@ -13,9 +13,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+
 model Room {
   id               Int        @id @default(autoincrement())
-  images           String 
+  images           Image[]
   roomName         String
   is_active_status Boolean    @default(true)
   floor            String
@@ -24,8 +26,15 @@ model Room {
   is_active_booked Boolean    @default(false)
   bookings         Booking[]
   favorites        Favorite[]
-}
 
+}
+model Image {
+  id     Int    @id @default(autoincrement())
+  imageName  String 
+  url    String
+  roomId Int
+  room   Room   @relation(fields: [roomId], references: [id])
+}
 model Booking {
   id                  Int       @id @default(autoincrement())
   customerId          Int
@@ -67,13 +76,15 @@ model Profile {
   gender   Gender
   phone    String
   country  String
+  imagename String?
+  url      String?
   customeId Customer? @relation("CustomerProfile")
 }
 
 model Customer {
   id        Int     @id @default(autoincrement())
   profileId Int     @unique
-  contact   String  
+  contact   String  @unique
   password  String
   google    String?
   facebook  String?

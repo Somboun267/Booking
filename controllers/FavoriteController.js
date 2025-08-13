@@ -2,6 +2,7 @@ const prisma = require("../config/prisma")
 
 exports.listFavorite = async(req,res)=>{
     try{
+        
       const favorite = await prisma.favorite.findMany({
         include:{
             room:{

@@ -3,7 +3,10 @@ const express =  require('express')
 const router = express.Router()
 
 const {list,update,remove} = require('../controllers/customerController')
+//Protech Routes 
 const {ProtectRoutes} = require('../middleware/protectRoutes')
+
+const { uploadProfile } = require('../uploads/UploadImagesProfile');
 
 
 
@@ -55,7 +58,7 @@ router.get('/customer',ProtectRoutes,list)
  *       200:
  *         description: Customer updated
  */
-router.put('/customer/:id',ProtectRoutes,update)
+router.put('/customer/:id',ProtectRoutes,uploadProfile,update)
 
 /**
  * @swagger
