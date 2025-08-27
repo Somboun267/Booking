@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 
-const { createBook, list, update } = require('../controllers/BookController')
+const { createBook, list, update,deleteBook } = require('../controllers/BookController')
 
 /**
  * @swagger
@@ -101,6 +101,9 @@ router.post('/book', createBook)
  *         description: Booking updated
  */
 router.put('/book/:id', update)
+
+
+router.delete('/book/:id',deleteBook)
 
 
 

@@ -30,9 +30,11 @@ app.use('/api',favorite)
 swagger(app);
 
 
-
+app.get('/Test', (req, res) => {
+    res.send('Welcome to the Booking System API');
+});
 
 
 app.listen(3000,()=>{
-    console.log("server is runnig port 300")
+    console.log("server is runnig port 3000 https://localhost:3000")
 })

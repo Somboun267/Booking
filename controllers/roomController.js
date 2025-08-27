@@ -1,82 +1,82 @@
 const prisma = require("../config/prisma");
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 exports.createRoom = async (req, res) => {
-    try {
-      const { roomName, floor, type_room, description, is_active_status } = req.body;
-  
-      const newRoom = await prisma.room.create({
-        data: {
-          roomName,
-          floor: floor.toString(),
-          type_room,
-          description,
-          is_active_status: is_active_status === 'true' || is_active_status === true,
-        }
+  try {
+    const { roomName, floor, type_room, description, is_active_status } =
+      req.body;
+
+    const newRoom = await prisma.room.create({
+      data: {
+        roomName,
+        floor: floor.toString(),
+        type_room,
+        description,
+        is_active_status:
+          is_active_status === "true" || is_active_status === true,
+      },
+    });
+
+    if (req.files && req.files.length > 0) {
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
+
+      const imagesData = req.files.map((file) => ({
+        imageName: file.filename, //
+        url: `${baseUrl}/images/${file.filename}`,
+        roomId: newRoom.id,
+      }));
+
+      await prisma.image.createMany({
+        data: imagesData,
       });
-  
-      if (req.files && req.files.length > 0) {
-        const baseUrl = `${req.protocol}://${req.get('host')}`;
-  
-        const imagesData = req.files.map(file => ({
-          imageName: file.filename,   // 
-          url: `${baseUrl}/images/${file.filename}`,
-          roomId: newRoom.id,
-        }));
-  
-        await prisma.image.createMany({
-          data: imagesData,
-        });
-      }
-  
-      const roomWithImages = await prisma.room.findUnique({
-        where: { id: newRoom.id },
-        include: { images: true },
-      });
-  
-      res.status(200).json({ message: "Created Success", room: roomWithImages });
-  
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: "Internal error" });
     }
-  };
-  
 
-exports.list = async(req,res)=>{
-    try{
+    const roomWithImages = await prisma.room.findUnique({
+      where: { id: newRoom.id },
+      include: { images: true },
+    });
 
-        const room = await prisma.room.findMany({
-            include: {
-                images: {
-                    select:{
-                        id: true,
-                        imageName: true,
-                        url: true
-                    }
-                } 
-            }
-        })
-        
-        res.status(200).send(room)
+    res.status(200).json({ message: "Created Success ✅", room: roomWithImages });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Create Error ❌" });
+  }
+};
 
-    }catch(err){
-        console.log(err)
-        res.staus(500).json({message:"Internal error"})
-    }
-}
+exports.list = async (req, res) => {
+  try {
+    const room = await prisma.room.findMany({
+      include: {
+        images: {
+          select: {
+            id: true,
+            imageName: true,
+            url: true,
+          },
+        },
+      },
+    });
 
-
-
+    res.status(200).send(room);
+  } catch (err) {
+    console.log(err);
+    res.staus(500).json({ message: "Server GetAll Error ❌" });
+  }
+};
 
 exports.UpdateRoom = async (req, res) => {
   try {
     const roomId = parseInt(req.params.id);
-    const { roomName, floor, type_room, description, is_active_status } = req.body;
+    if (isNaN(roomId)) {
+      return res.status(400).json({ message: "Invalid Room ID ❌" });
+    }
 
-    // อัปเดตข้อมูล room
+    const { roomName, floor, type_room, description, is_active_status } =
+      req.body;
+
+    // Update room
     const updated = await prisma.room.update({
       where: { id: roomId },
       data: {
@@ -84,17 +84,18 @@ exports.UpdateRoom = async (req, res) => {
         floor,
         type_room,
         description,
-        is_active_status: is_active_status === 'true' || is_active_status === true,
+        is_active_status:
+          is_active_status === "true" || is_active_status === true,
       },
     });
 
-    // ดึงรูปเก่าทั้งหมด
+    // Dueng houp kao thung mod t me
     const oldImages = await prisma.image.findMany({ where: { roomId } });
 
-    // ลบไฟล์เก่าในโฟลเดอร์และลบข้อมูลใน DB
+    // Lop file kao nai folder and database
     if (oldImages.length > 0) {
-      oldImages.forEach(image => {
-        const imagePath = path.join(__dirname, '..', 'images', image.imageName); 
+      oldImages.forEach((image) => {
+        const imagePath = path.join(__dirname, "..", "images", image.imageName);
         if (fs.existsSync(imagePath)) {
           fs.unlinkSync(imagePath);
         }
@@ -102,11 +103,11 @@ exports.UpdateRoom = async (req, res) => {
       await prisma.image.deleteMany({ where: { roomId } });
     }
 
-    // ถ้ามีไฟล์ใหม่อัปโหลด ให้บันทึกลง DB
+    //
     if (req.files && req.files.length > 0) {
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const baseUrl = `${req.protocol}://${req.get("host")}`;
 
-      const newImagesData = req.files.map(file => ({
+      const newImagesData = req.files.map((file) => ({
         imageName: file.filename,
         url: `${baseUrl}/images/${file.filename}`,
         roomId: roomId,
@@ -115,45 +116,53 @@ exports.UpdateRoom = async (req, res) => {
       await prisma.image.createMany({ data: newImagesData });
     }
 
-    // ดึงข้อมูลห้องที่อัปเดตพร้อมไฟล์
+    //
     const updatedRoom = await prisma.room.findUnique({
       where: { id: roomId },
       include: { images: true },
     });
 
-    res.status(200).json({ message: "Updated Success", room: updatedRoom });
+    res.status(200).json({ message: "Updated Success ✅", room: updatedRoom });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Internal error" });
+    res.status(500).json({ message: "Server Update Error ❌" });
   }
 };
 
-
-  exports.remove = async(req,res)=>{
-    try{
-
-        const id = parseInt(req.params.id);   
-        
-        const checkroom = await prisma.room.findMany({
-            where:{
-                id
-            }
-        }) 
-        if(checkroom.length>0){
-          return res.status(400).json({message:"room is active"})
-        }
-        console.log(checkroom)
-        
-        const room = await prisma.room.delete({
-            where:{
-                id
-            }
-        })
-        
-        res.status(200).send(room)
-
-    }catch(err){
-        console.log(err)
-        res.status(500).json({message:"Internal error"})
+exports.remove = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid ID ❌" });
     }
-}
+
+    // kuad va me hrng u lhue br
+    const room = await prisma.room.findUnique({ where: { id } });
+    if (!room) {
+      return res.status(404).json({ message: "Room not found ❌" });
+    }
+
+    // bg vah hrng ni thuek jrng la wah
+    const checkBooking = await prisma.booking.findFirst({
+      where: { roomId: id },
+    });
+
+    if (checkBooking) {
+      return res
+        .status(400)
+        .json({ message: "Room is active , cannot delete ❌" });
+    }
+
+    // lop
+    const deletedRoom = await prisma.room.delete({
+      where: { id },
+    });
+
+    res
+      .status(200)
+      .json({ message: "Room deleted successfully ✅", room: deletedRoom });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server remove Error ❌" });
+  }
+};

@@ -11,8 +11,8 @@ exports.ProtectRoutes = async(req,res,next)=>{
          const token = auth.split(" ")[1];
 
          const decoded = jwt.verify(token, process.env.ACCESS_TOKEN);      
-      
-         req.user = decoded;
+ 
+         req.user = { id: decoded.id};
 
          next();
          

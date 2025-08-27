@@ -96,7 +96,7 @@ router.put("/room/:id",upload,UpdateRoom)
 
 /**
  * @swagger
- * /rooms/{id}:
+ * /room/{id}:
  *   delete:
  *     summary: Delete a room
  *     tags: [Room]

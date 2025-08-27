@@ -13,7 +13,7 @@ exports.list = async (req, res) => {
         res.send(customer)
     } catch (err) {
         console.log(err)
-        res.status(500).json({ message: "error list " })
+        res.status(500).json({ message: "Server GetAll Error ❌" })
     }
 }
 
@@ -21,7 +21,7 @@ exports.update = async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
-        return res.status(400).json({ message: "Invalid ID" });
+        return res.status(400).json({ message: "Invalid ID ❌" });
       }
   
       const { contact, google, facebook } = req.body;
@@ -81,16 +81,19 @@ exports.update = async (req, res) => {
   
       delete newCustomer.password;
   
-      res.status(200).json({ message: "Updated successfully", newCustomer });
+      res.status(200).json({ message: "Updated successfully ✅", newCustomer });
     } catch (err) {
       console.error(err);
-      res.status(500).json({ message: "Error updating customer" });
+      res.status(500).json({ message: "Server Update Customer Error ❌" });
     }
   };
 
 exports.remove = async (req, res) => {
     try {
         const id = parseInt(req.params.id)
+        if(isNaN(id)){
+            return res.status(400).json({ message: "Invalid ID ❌" })
+        }
 
         // dueng profileId สlh houp
          const customer = await prisma.customer.findUnique({
@@ -99,7 +102,7 @@ exports.remove = async (req, res) => {
     });
 
 
-    if (!customer) return res.status(404).json({ message: "Customer not found" });
+    if (!customer) return res.status(404).json({ message: "Customer not found ❌" });
 
 
 
@@ -126,10 +129,10 @@ exports.remove = async (req, res) => {
             }
         })
 
-        res.status(200).json({ message: "Customer and Profile removed" })
+        res.status(200).json({ message: "Customer and Profile remove Success ✅" })
     } catch (err) {
         console.log(err)
-        res.status(500).json({ message: "Error removing customer and profile" })
+        res.status(500).json({ message: "Server Delete customer and profile Error ❌" })
     }
 }
 
