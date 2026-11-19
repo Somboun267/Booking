@@ -1,70 +1,65 @@
-Meeting Room Booking System (Backend)
+# Meeting Room Booking System (Backend)
 
 A RESTful API for a Meeting Room Booking System built with Node.js, Express.js, Prisma ORM, and MySQL.
 
 This system allows customers to register, authenticate, browse meeting rooms, make reservations, manage customer profiles, and save favorite rooms.
 
-The application uses Docker and Docker Compose to containerize the backend and MySQL database.
+The application uses Docker and Docker Compose to containerize the backend application and MySQL database.
 
-Features
+## Features
 
-Authentication
-Customer registration and login.
-Password hashing using Bcrypt.
+### Authentication
+- Customer registration and login.
+- Password hashing using Bcrypt.
+- JWT authentication.
+- Protected API routes.
+- Profile image upload.
 
-JWT authentication.
-Protected API routes.
-Profile image upload.
+### Room Management
+- Retrieve all meeting rooms.
+- Create, update, and delete rooms.
+- Upload multiple room images.
+- Manage room information and availability status.
 
-Room Management
+### Booking Management
+- Create meeting room reservations.
+- Retrieve booking records.
+- Update booking information.
+- Delete bookings.
+- Select meeting equipment.
 
-Retrieve all meeting rooms.
-Create, update, and delete rooms.
-Upload multiple room images.
-Manage room information and availability status.
+### Customer Management
+- Retrieve customer information.
+- Update customer profiles.
+- Upload profile images.
+- Delete customer accounts.
 
-Booking Management
+### Favorite Management
+- Add rooms to favorites.
+- Retrieve favorite rooms.
+- Update favorite records.
+- Remove favorite rooms.
 
-Create meeting room reservations.
-Retrieve booking records.
-Update booking information.
-Delete bookings.
-Select meeting equipment.
+## Technologies Used
 
-Customer Management
+- Node.js 22
+- Express.js
+- JavaScript
+- MySQL 8.0
+- Prisma ORM
+- JWT (JSON Web Token)
+- Bcrypt
+- Swagger JSDoc
+- Swagger UI
+- Multer
+- Docker
+- Docker Compose
 
-Retrieve customer information.
-Update customer profiles.
-Upload profile images.
-Delete customer accounts.
-
-Favorite Management
-
-Add rooms to favorites.
-Retrieve favorite rooms.
-Update favorite records.
-Remove favorite rooms.
-
-Technologies Used
-
-Node.js 22
-Express.js
-JavaScript
-MySQL 8.0
-Prisma ORM
-JWT (JSON Web Token)
-Bcrypt
-Swagger JSDoc
-Swagger UI
-Multer
-Docker
-Docker Compose
-
-Database Design
+## Database Design
 
 The project uses MySQL with Prisma ORM to manage database models and relationships.
 
-Database Models
+### Database Models
 
 | Model | Description |
 |---|---|
@@ -75,94 +70,90 @@ Database Models
 | Booking | Stores meeting room reservations |
 | Favorite | Stores customers' favorite rooms |
 
-Database Relationships
+### Database Relationships
 
-One Customer has one Profile.
-One Customer can have multiple Bookings.
-One Customer can have multiple Favorites.
-One Room can have multiple Images.
-One Room can have multiple Bookings.
-One Room can have multiple Favorites.
+- One Customer has one Profile.
+- One Customer can have multiple Bookings.
+- One Customer can have multiple Favorites.
+- One Room can have multiple Images.
+- One Room can have multiple Bookings.
+- One Room can have multiple Favorites.
 
-API Endpoints
+## API Endpoints
 
 All API endpoints use the `/api` base path.
 
-Authentication
+### Authentication
 
 | Method | Endpoint | Description |
-| | | |
+|---|---|---|
 | POST | `/api/register` | Register a new customer |
 | POST | `/api/login` | Customer login |
 
-Room Management
+### Room Management
 
 | Method | Endpoint | Description |
-| | | |
+|---|---|---|
 | GET | `/api/rooms` | Get all rooms |
 | POST | `/api/room` | Create a new room |
 | PUT | `/api/room/:id` | Update a room |
 | DELETE | `/api/room/:id` | Delete a room |
 
-Booking Management
+### Booking Management
 
 | Method | Endpoint | Description |
-| | | |
+|---|---|---|
 | GET | `/api/book` | Get all bookings |
 | POST | `/api/book` | Create a booking |
 | PUT | `/api/book/:id` | Update a booking |
 | DELETE | `/api/book/:id` | Delete a booking |
 
-Customer Management
+### Customer Management
 
 | Method | Endpoint | Description |
-| | | |
+|---|---|---|
 | GET | `/api/customer` | Get all customers |
 | PUT | `/api/customer/:id` | Update customer information |
 | DELETE | `/api/customer/:id` | Delete a customer |
 
-Favorite Management
+### Favorite Management
 
 | Method | Endpoint | Description |
-| | | |
+|---|---|---|
 | GET | `/api/favorites` | Get all favorites |
 | POST | `/api/favorite` | Add a favorite |
 | PUT | `/api/favorite/:id` | Update a favorite |
 | DELETE | `/api/favorite/:id` | Delete a favorite |
 
-API Documentation (Swagger)
+## API Documentation (Swagger)
 
 This project uses Swagger JSDoc and Swagger UI with OpenAPI 3.0.0 to document and test RESTful APIs.
 
-Swagger UI
+### Swagger UI
 
 Access the interactive API documentation:
 
-```text
-http://localhost:4000/apidocs
-```
+`http://localhost:4000/api-docs`
 
-API Base URL
+### Swagger Screenshot
 
-```text
-http://localhost:4000/api
-```
+![Swagger API Documentation](./swagger.png)
 
-Swagger Features
+### Swagger Features
 
-Interactive API documentation.
-API endpoint descriptions.
-Request parameters and response schemas.
-JWT Bearer Authentication.
-Test REST API endpoints directly.
-JSON and multipart/formdata support.
-File upload testing.
+- Interactive API documentation.
+- API endpoint descriptions.
+- Request parameters and response schemas.
+- JWT Bearer Authentication.
+- Test REST API endpoints directly.
+- JSON and multipart/form-data support.
+- File upload testing.
 
-Docker Configuration
+## Docker Configuration
 
 The project uses Docker to containerize the Node.js backend application and MySQL database.
 
-Dockerfile
+### Dockerfile
 
 The backend Docker image uses Node.js 22.
 
@@ -171,40 +162,40 @@ FROM node:22
 
 WORKDIR /usr/src/app
 
-Copy package files
+# Copy package files
 COPY package*.json ./
 
-Install dependencies
+# Install dependencies
 RUN npm install
 
-Copy source code
+# Copy source code
 COPY . .
 
-Generate Prisma Client for Linux
+# Generate Prisma Client for Linux
 RUN npx prisma generate
 
-Expose application port
+# Expose application port
 EXPOSE 3000
 
-Start server
+# Start server
 CMD ["node", "server.js"]
 ```
 
-Docker Compose
+### Docker Compose
 
 The project uses two services:
 
 | Service | Technology | Port |
-| | | |
-| iqbook | Node.js 22 | 4000:3000 |
+|---|---|---|
+| iq-book | Node.js 22 | 4000:3000 |
 | db | MySQL 8.0 | 3333:3306 |
 
-Docker Volumes
+### Docker Volumes
 
-`db_data`: Stores persistent MySQL database data.
-`uploads`: Stores uploaded profile images.
+- `db_data`: Stores persistent MySQL database data.
+- `uploads`: Stores uploaded files in the configured volume.
 
-Run with Docker Compose
+### Run with Docker Compose
 
 Build and start the application:
 
@@ -242,49 +233,43 @@ Remove containers and volumes:
 docker compose down -v
 ```
 
-**Warning:** Removing volumes with `docker compose down v` will permanently delete the database data and uploaded files stored in those volumes.
+**Warning:** Removing volumes with `docker compose down -v` will permanently delete the database data and uploaded files stored in those volumes.
 
-Application URLs
+### Application URLs
 
 Backend API:
 
-```text
-http://localhost:4000/api
-```
+`http://localhost:4000/api`
 
 Swagger Documentation:
 
-```text
-http://localhost:4000/apidocs
-```
+`http://localhost:4000/api-docs`
 
 MySQL Database:
 
-```text
-localhost:3333
-```
+`localhost:3333`
 
-Local Development Setup
+## Local Development Setup
 
-1.  Clone the repository
+### 1. Clone the repository
 
 ```bash
 git clone YOUR_REPOSITORY_URL
 ```
 
-2.  Navigate to the project directory
+### 2. Navigate to the project directory
 
 ```bash
 cd YOUR_PROJECT_NAME
 ```
 
-3.  Install dependencies
+### 3. Install dependencies
 
 ```bash
 npm install
 ```
 
-4.  Configure environment variables
+### 4. Configure environment variables
 
 Create a `.env` file in the project root directory.
 
@@ -293,25 +278,25 @@ DATABASE_URL="mysql://root:root@localhost:3333/TestBook"
 JWT_SECRET="your_secret_key"
 ```
 
-5.  Generate Prisma Client
+### 5. Generate Prisma Client
 
 ```bash
 npx prisma generate
 ```
 
-6.  Run database migrations
+### 6. Run database migrations
 
 ```bash
 npx prisma migrate dev
 ```
 
-7.  Start the server
+### 7. Start the server
 
 ```bash
 npm start
 ```
 
-Project Structure
+## Project Structure
 
 ```text
 MeetingRoomBooking/
@@ -321,24 +306,25 @@ MeetingRoomBooking/
 ├── middleware/
 ├── uploads/
 ├── Profileimages/
+├── images/
 │
 ├── prisma/
 │   └── schema.prisma
 │
+├── swagger.png
 ├── swagger.js
 ├── server.js
 ├── Dockerfile
-├── dockercompose.yml
+├── docker-compose.yml
 ├── package.json
-├── packagelock.json
-├── .env
+├── package-lock.json
 ├── .env.example
 ├── .dockerignore
 ├── .gitignore
 └── README.md
 ```
 
-Author
+## Author
 
 **Kay**
 
